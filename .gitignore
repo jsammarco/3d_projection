@@ -1,0 +1,28 @@
+.venv/
+__pycache__/
+tests/__pycache__/
+.web-deps/
+gui-test-artifacts/
+
+# Local secrets and editor files
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+
+# Reproducible generator and Blender output
+/output/
+/*.stl
+/print_parts.zip
+/apertures_*.svg
+/shadow.svg
+/shadow.scad
+/assembly_guide.txt
+/generation_report.json
+/projection_mask.png
+/projection_preview.png
+/model_render.png
+/assembly_exploded.png
+/projector_preview.blend*

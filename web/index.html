@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="studio-token" content="{{ token }}">
+  <title>Shadow Studio · Projection designer</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%232e4239'/%3E%3Cpath d='M10 28 20 9l10 19H10Zm5-6h10' fill='none' stroke='%23e7bb74' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css">
+  <script type="importmap">{"imports":{"three":"/static/vendor/three.module.min.js"}}</script>
+  <script type="module" src="/static/app.js?v=1"></script>
+</head>
+<body>
+<svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 3 9 5v8l-9 5-9-5V8l9-5Zm0 9 9-4M12 12 3 8m9 4v9M7.5 5.5l9 5"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v13m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+  <symbol id="i-light" viewBox="0 0 24 24"><path d="M9 18h6m-6 3h6M8 14a6 6 0 1 1 8 0l-1 2H9l-1-2ZM12 1v1M2 9h1m18 0h1M4 2l2 2m14-2-2 2"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7a9 9 0 1 0 1 9M20 2v6h-6"/></symbol>
+  <symbol id="i-parts" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m3 16 5-5 5 5 3-3 5 5"/><circle cx="15" cy="8" r="1.5"/></symbol>
+</defs></svg>
+<header class="app-header">
+  <div class="brand"><div class="brand-mark"><svg><use href="#i-cube"/></svg></div><div><h1>Shadow Studio</h1><span>Projection designer</span></div></div>
+  <div class="header-center"><span class="local-dot"></span> Made on your computer</div>
+  <button id="saveButton" class="button primary" disabled><svg><use href="#i-download"/></svg>Save STLs<span class="button-badge">ZIP</span></button>
+</header>
+<main class="app-layout">
+  <aside class="sidebar" aria-label="Project settings">
+    <div class="sidebar-heading"><span>YOUR PROJECT</span><button id="resetSettings" class="text-button" title="Reset dimensions and options">Reset settings</button></div>
+    <form id="settingsForm" class="settings-scroll">
+      <section class="config-section image-section">
+        <div class="section-heading"><span class="section-number">01</span><h2>Source image</h2><button type="button" id="useSample" class="text-button">Use sample</button></div>
+        <div id="dropZone" class="image-drop">
+          <canvas id="sourceCanvas" aria-label="Input artwork preview"></canvas>
+          <button type="button" id="chooseImage" class="image-change"><svg><use href="#i-upload"/></svg>Choose image</button>
+          <input type="file" id="imageFile" accept="image/png,image/jpeg,image/webp,image/bmp" hidden>
+        </div>
+        <div class="image-meta"><span id="imageName" title="fish.jpg">fish.jpg</span><div class="mini-tabs" aria-label="Image preview"><button type="button" data-image-mode="original" class="active">Original</button><button type="button" data-image-mode="mask">Mask</button></div></div>
+        <div class="range-heading"><label for="threshold">Threshold</label><output id="thresholdValue">125</output></div>
+        <input id="threshold" name="threshold" type="range" min="0" max="255" value="125">
+        <p class="field-hint">Black casts a shadow. White lets light through.</p>
+      </section>
+
+      <section class="config-section">
+        <div class="section-heading"><span class="section-number">02</span><h2>Model dimensions</h2><span class="unit-note">mm</span></div>
+        <div class="field-grid">
+          <label class="number-field">Wall span<input name="size" type="number" min="80" max="400" step="1" required></label>
+          <label class="number-field">Base thickness<input name="base_thickness" type="number" min="3" max="20" step="0.2" required></label>
+          <label class="number-field">Wall thickness<input name="wall_thickness" type="number" min="1" max="8" step="0.1" required></label>
+          <label class="number-field">Slot clearance<input name="fit_clearance" type="number" min="0.1" max="0.8" step="0.05" required></label>
+        </div>
+        <p class="field-hint">Clearance is total extra space, not per side.</p>
+      </section>
+
+      <section class="config-section">
+        <div class="section-heading"><span class="section-number">03</span><h2>Light & projection</h2><span class="unit-note">mm</span></div>
+        <div class="field-grid">
+          <label class="number-field">Image width on wall<input name="projection_width" type="number" min="200" max="5000" step="10" required></label>
+          <label class="number-field">Base → room wall<input name="wall_gap" type="number" min="0" max="1000" step="1" required></label>
+          <label class="number-field">Light height<input name="light_height" type="number" min="16" max="300" step="0.5" required></label>
+          <label class="number-field">LED body diameter<input name="emitter_diameter" type="number" min="2" max="30" step="0.5" required></label>
+        </div>
+        <p class="field-hint">Light height is measured from the base underside.</p>
+      </section>
+
+      <details class="config-section advanced">
+        <summary><div class="section-heading"><span class="section-number">04</span><h2>Print details</h2></div><svg><use href="#i-chevron"/></svg></summary>
+        <div class="field-grid">
+          <label class="number-field">Bridge width<input name="bridge_width" type="number" min="0.4" max="4" step="0.1" required></label>
+          <label class="number-field">Minimum feature<input name="min_feature" type="number" min="0.2" max="3" step="0.1" required></label>
+          <label class="number-field">Corner support<input name="frame" type="number" min="0.6" max="6" step="0.1" required></label>
+          <label class="number-field">Base border<input name="base_margin" type="number" min="5" max="20" step="0.5" required></label>
+          <label class="number-field">Tab width<input name="tab_width" type="number" min="3" max="30" step="0.5" required></label>
+          <label class="number-field">Emitter above post<input name="emitter_height" type="number" min="2" max="20" step="0.5" required></label>
+          <label class="number-field">Hood radius<input name="hood_radius" type="number" min="8" max="60" step="1" required></label>
+          <label class="number-field">Hood thickness<input name="hood_thickness" type="number" min="1" max="5" step="0.1" required></label>
+        </div>
+        <label class="select-field">Artwork detail<select name="resolution"><option value="600">Draft · 600 px</option><option value="1200">Standard · 1,200 px</option><option value="2000">Fine · 2,000 px</option><option value="4096">Maximum · 4,096 px</option></select></label>
+      </details>
+    </form>
+    <div class="sidebar-actions">
+      <div class="auto-row"><label class="check-label"><input id="autoUpdate" type="checkbox" checked>Auto update</label><span id="changeStatus">Preparing project</span></div>
+      <button id="buildButton" class="button build-button"><svg><use href="#i-refresh"/></svg>Update model</button>
+      <div id="errorMessage" class="error-message" role="alert" hidden></div>
+    </div>
+  </aside>
+
+  <section class="workspace" aria-label="Interactive preview">
+    <div class="workspace-top">
+      <div class="workspace-title"><h2 id="projectTitle">Fish projector</h2><span id="readyBadge" class="status-badge"><span></span>Preparing</span></div>
+      <div class="view-tabs" role="tablist" aria-label="Preview mode">
+        <button class="active" data-mode="model" role="tab" aria-selected="true"><svg><use href="#i-cube"/></svg>3D model</button>
+        <button data-mode="light" role="tab" aria-selected="false"><svg><use href="#i-light"/></svg>Light simulation</button>
+        <button data-mode="parts" role="tab" aria-selected="false"><svg><use href="#i-parts"/></svg>Print parts</button>
+      </div>
+    </div>
+
+    <div class="viewport-shell" id="viewportShell">
+      <div id="viewport" aria-label="3D model preview. Drag to orbit, scroll to zoom."></div>
+      <div class="viewport-topline"><span id="viewLabel">ASSEMBLED MODEL</span><div class="camera-actions"><button id="wallView" class="canvas-button" hidden>Face the wall</button><button id="resetCamera" class="canvas-button" title="Reset camera"><svg><use href="#i-refresh"/></svg>Reset view</button></div></div>
+      <div id="staleNotice" class="stale-notice" hidden>Settings changed · updating preview</div>
+      <div id="emptyState" class="empty-state"><div class="empty-cube"><svg><use href="#i-cube"/></svg></div><h3>Your image, in a new dimension.</h3><p>Preparing the first model…</p></div>
+      <div id="buildProgress" class="build-progress" role="status" aria-live="polite" hidden><div class="spinner"></div><div><strong id="progressLabel">Building your model</strong><div class="progress-track"><i id="progressBar"></i></div></div><button id="cancelBuild" title="Cancel build" aria-label="Cancel build"><svg><use href="#i-close"/></svg></button></div>
+
+      <div id="modelControls" class="floating-controls"><label for="explode">Explode</label><input id="explode" type="range" min="0" max="100" value="0"><span class="control-divider"></span><label class="check-label"><input id="showHood" type="checkbox" checked>Show hood</label></div>
+      <div id="simulationControls" class="simulation-controls" hidden>
+        <div class="simulation-top"><label class="switch-label"><input id="lightOn" type="checkbox" checked><span class="switch"></span>Light on</label><label class="check-label"><input id="falloff" type="checkbox">Natural falloff</label></div>
+        <div class="simulation-range"><label for="brightness">Brightness</label><input id="brightness" type="range" min="20" max="180" value="100"><output id="brightnessValue">100%</output></div>
+        <div class="simulation-range"><label for="emitterSize">Emitting area</label><input id="emitterSize" type="range" min="0" max="5" step="0.1" value="0"><output id="emitterSizeValue">Point</output></div>
+        <span id="simulationHint" class="simulation-hint">Ray-traced visibility · ideal point source</span>
+      </div>
+
+      <button id="projectionCard" class="projection-card" hidden aria-label="Open enlarged projection"><div class="projection-card-title">Shadow detail · normalized<svg><use href="#i-expand"/></svg></div><img id="projectionThumb" alt="Simulated projected image"><span>Inspect projection</span></button>
+      <details id="partsCard" class="parts-card" hidden><summary><svg><use href="#i-parts"/></svg><span>7 print files</span><svg class="chevron"><use href="#i-chevron"/></svg></summary><ul id="partsList"></ul></details>
+      <div class="canvas-caption" id="canvasCaption">Drag to orbit<span>·</span>Scroll to zoom<span>·</span>Right-drag to pan</div>
+      <div id="webglError" class="webgl-error" hidden>This browser cannot start the 3D viewer. Try Chrome or Edge with hardware acceleration enabled. You can still inspect the projection and save your STLs.</div>
+    </div>
+
+    <div class="metrics"><div><span>ASSEMBLED SIZE</span><strong id="metricSize">— <small>mm</small></strong></div><div><span>PROJECTED IMAGE</span><strong id="metricProjection">— <small>mm</small></strong></div><div><span>PRINT GEOMETRY</span><strong id="metricParts">7 separate parts</strong><small id="metricValidation">Checking the model</small></div><div class="metric-note"><svg><use href="#i-check"/></svg><span>Designed to print flat.<br>Assemble with keyed slots.</span></div></div>
+    <div class="workspace-foot"><span id="buildTime">Local processing. No cloud upload.</span><span>Dimensions in millimetres</span></div>
+  </section>
+</main>
+<dialog id="projectionDialog"><div class="dialog-heading"><div><span class="eyebrow">LIGHT SIMULATION</span><h2>One image. Four stencil walls.</h2></div><button id="closeProjection" class="icon-button" aria-label="Close projection"><svg><use href="#i-close"/></svg></button></div><img id="projectionLarge" alt="Enlarged ray-traced projection"><p>The base and supports cast the visible center block and lines. Actual brightness and sharpness depend on your light and print material.</p></dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
